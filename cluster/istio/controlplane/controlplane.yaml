@@ -12,6 +12,10 @@ spec:
       - enabled: true
         name: istio-ingressgateway
         namespace: istio-system
+        k8s:
+          serviceAnnotations:
+            service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+            service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
 
   addonComponents:
     kiali:

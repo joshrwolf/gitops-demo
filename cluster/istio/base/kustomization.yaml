@@ -1,6 +1,0 @@
-resources:
-  # Base istio
-  - ../../../vendor/istio
-
-  # Gateway resource
-#  - 
