@@ -1,0 +1,7 @@
+namespace: istio-system
+
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "2"
+
+resources:
+  - gateway.yaml

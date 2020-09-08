@@ -1,0 +1,31 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istiocontrolplane
+  namespace: istio-system
+spec:
+  profile: default
+  tag: 1.7.0-distroless
+
+  components:
+    ingressGateways:
+      - enabled: true
+        name: istio-ingressgateway
+        namespace: istio-system
+
+  addonComponents:
+    kiali:
+      enabled: true
+    tracing:
+      enabled: true
+
+  # Global Helm settings
+  values:
+    sidecarInjectorWebhook:
+      rewriteAppHTTPProbe: true
+      neverInjectSelector:
+        - matchExpressions:
+            # Never auto-inject on fluentd configcheck _jobs_
+            - key: app.kubernetes.io/component
+              operator: In
+              values: [fluentd-configcheck]

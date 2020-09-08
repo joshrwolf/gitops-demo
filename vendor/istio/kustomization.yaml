@@ -1,0 +1,5 @@
+resources:
+  - operator/
+  - controlplane/
+
+  # NOTE: Gateway is intentionally left out as it's very environment specific

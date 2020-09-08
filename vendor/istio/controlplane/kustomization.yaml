@@ -1,0 +1,7 @@
+namespace: istio-system
+
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "1"
+
+resources:
+  - controlplane.yaml

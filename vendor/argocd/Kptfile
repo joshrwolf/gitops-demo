@@ -1,0 +1,11 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+  name: argocd
+upstream:
+  type: git
+  git:
+    commit: 5318966c5f7259405134a7ff20d233802af07f88
+    repo: https://repo1.dsop.io/platform-one/apps/argocd
+    directory: /
+    ref: helm

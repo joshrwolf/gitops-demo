@@ -1,0 +1,120 @@
+installCRDs: false
+
+redis-ha:
+  enabled: false
+
+repoServer:
+  autoscaling:
+    enabled: false
+  
+  metrics:
+    enabled: true
+
+controller:
+  metrics:
+    enabled: true
+
+server:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: istio
+
+  extraArgs:
+  - --insecure
+
+  autoscaling:
+    enabled: false
+
+  metrics:
+    enabled: true
+
+  config:
+    # url: Set in overlays
+
+    # Enables application status badge feature
+    statusbadge.enabled: "true"
+
+    # Enables anonymous user access. The anonymous users get default role permissions specified argocd-rbac-cm.yaml.
+    users.anonymous.enabled: "false"
+
+    # Enable plugins
+    kustomize.buildOptions: "--load_restrictor none"
+
+    # Load repositories needed for bootstrap, others are added within the UI
+    repositories: |
+      - name: stable
+        type: helm
+        url: https://kubernetes-charts.storage.googleapis.com/
+
+    # Disable the admin user
+    admin.enabled: "false"
+
+    # In general, have ArgoCD ignore MutatingWebhook's caBundle, let the WH deal with this and keep ArgoCD ignorant
+    resource.customizations: |
+      admissionregistration.k8s.io/MutatingWebhookConfiguration:
+        ignoreDifferences: |
+          jsonPointers:
+          - /webhooks
+      admissionregistration.k8s.io/ValidatingWebhookConfiguration:
+        ignoreDifferences: |
+          jsonPointers:
+          - /webhooks
+      apiextensions.k8s.io/CustomResourceDefinition:
+        ignoreDifferences: |
+          jsonPointers:
+          - /status
+      networking.k8s.io/v1beta1/Ingress:
+        ignoreDifferences: |
+          jsonPointers:
+          - /status
+
+      install.istio.io/IstioOperator:
+        health.lua: |
+          health_status = {}
+          if obj.status ~= nil then
+            if obj.status.status ~= nil then
+              if obj.status.status == 0 or obj.status.status == "NONE" then
+                health_status.status = "Unknown"
+                health_status.message = "Component is not present."
+                return health_status
+              end
+              if obj.status.status == 1 or obj.status.status == "UPDATING" then
+                health_status.status = "Progressing"
+                health_status.message = "Component is being updated to a different version."
+                return health_status
+              end
+              if obj.status.status == 2 or obj.status.status == "RECONCILING" then
+                health_status.status = "Progressing"
+                health_status.message = "Controller has started but not yet completed reconciliation loop for the component."
+                return health_status
+              end
+              if obj.status.status == 3 or obj.status.status == "HEALTHY" then
+                health_status.status = "Healthy"
+                health_status.message = "Component is healthy."
+                return health_status
+              end
+              if obj.status.status == 4 or obj.status.status == "ERROR" then
+                health_status.status = "Degraded"
+                health_status.message = "Component is in an error state."
+                return health_status
+              end
+            end
+          end
+          health_status.status = "Progressing"
+          health_status.message = "Waiting for Istio Control Plane"
+          return health_status
+
+  additionalProjects:
+  - name: admin
+    namespace: argocd
+    description: Admin applications
+    sourceRepos:
+    - '*'
+    destinations:
+    - namespace: '*'
+      server: 'https://kubernetes.default.svc'
+    clusterResourceWhitelist:
+    # TODO: At some point, evaluate if we want to trim this down, that could be a maintenance nightmare though :|
+    - group: '*'
+      kind: '*'

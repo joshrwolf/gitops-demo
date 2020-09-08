@@ -1,0 +1,6 @@
+resources:
+  # Base istio
+  - ../../../vendor/servicemesh/deploy/istio
+
+  # Gateway resource
+#  - 

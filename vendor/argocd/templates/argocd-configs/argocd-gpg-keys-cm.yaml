@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-gpg-keys-cm
+  labels:
+    app.kubernetes.io/name: {{ include "argo-cd.name" . }}-gpg-keys-cm
+    helm.sh/chart: {{ include "argo-cd.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/component: {{ .Values.repoServer.name }}
+  {{- if .Values.repoServer.configAnnotations }}
+  annotations:
+  {{- range $key, $value := .Values.repoServer.configAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+data:
+{{- toYaml .Values.configs.gpgKeys | nindent 4 }}
